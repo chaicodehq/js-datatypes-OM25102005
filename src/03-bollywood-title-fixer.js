@@ -30,5 +30,35 @@
  *   // => "Dil ka Kya Kare"
  */
 export function fixBollywoodTitle(title) {
-  // Your code here
+  if (typeof title !== "string") {
+    return "";
+  }
+
+  const cleaned = title.trim();
+  if (cleaned === "") {
+    return "";
+  }
+const minorWords = new Set([
+    "ka", "ki", "ke", "se", "aur", "ya",
+    "the", "of", "in", "a", "an"
+  ]);
+
+  // 3. Extra spaces ko handle karte hue split karo
+  const words = cleaned.split(/\s+/);
+
+  // 4. Har word ko format karo
+ const formattedWords = words.map((rawWord, index) => {
+    const lowerWord = rawWord.toLowerCase();
+
+    // Agar pehla word nahi hai aur minor words list mein hai -> lowercase rakho
+    if (index > 0 && minorWords.has(lowerWord)) {
+      return lowerWord;
+    }
+
+    // Pehla letter Capital + baaki lowercase
+    return lowerWord.charAt(0).toUpperCase() + lowerWord.slice(1);
+  });
+
+return formattedWords.join(" ");
+
 }

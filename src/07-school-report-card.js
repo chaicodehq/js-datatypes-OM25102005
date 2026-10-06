@@ -41,5 +41,85 @@
  *   // => { name: "Priya", totalMarks: 63, percentage: 31.5, grade: "F", ... }
  */
 export function generateReportCard(student) {
-  // Your code here
+  if (!student || typeof student !== "object" || Array.isArray(student)) {
+    return null;
+  }
+
+  // 2. Validate student.name
+  if (typeof student.name !== "string" || student.name.trim() === "") {
+    return null;
+  }
+
+  // 3. Validate student.marks
+  if (!student.marks || typeof student.marks !== "object" || Array.isArray(student.marks)) {
+    return null;
+  }
+  const entries = Object.entries(student.marks);
+  if (entries.length === 0) {
+    return null;
+  }
+  for (const [_, mark] of entries) {
+    if (typeof mark !== "number" || !Number.isFinite(mark) || mark < 0 || mark > 100) {
+      return null;
+    }
+  }
+  const subjectCount = entries.length;
+  const marksList = Object.values(student.marks);
+const totalMarks = marksList.reduce((acc, curr) => acc + curr, 0);
+const rawPercentage = (totalMarks / (subjectCount * 100)) * 100;
+  const percentage = parseFloat(rawPercentage.toFixed(2));
+
+// 7. Calculate grade
+  let grade = "F";
+  if (percentage >= 90) {
+    grade = "A+";
+  } else if (percentage >= 80) {
+    grade = "A";
+  } else if (percentage >= 70) {
+    grade = "B";
+  } else if (percentage >= 60) {
+    grade = "C";
+  } else if (percentage >= 40) {
+    grade = "D";
+  }
+
+  // 8. Find highest and lowest subjects
+  let highestSubject = entries[0][0];
+  let lowestSubject = entries[0][0];
+  let highestScore = entries[0][1];
+  let lowestScore = entries[0][1];
+
+  for (let i = 1; i < entries.length; i++) {
+    const [subj, score] = entries[i];
+    if (score > highestScore) {
+      highestScore = score;
+      highestSubject = subj;
+    }
+    if (score < lowestScore) {
+      lowestScore = score;
+      lowestSubject = subj;
+    }
+  }
+
+  // 9. Passed and failed subjects
+  const passedSubjects = entries
+    .filter(([_, score]) => score >= 40)
+    .map(([subj]) => subj);
+
+  const failedSubjects = entries
+    .filter(([_, score]) => score < 40)
+    .map(([subj]) => subj);
+
+  return {
+    name: student.name,
+    totalMarks,
+    percentage,
+    grade,
+    highestSubject,
+    lowestSubject,
+    passedSubjects,
+    failedSubjects,
+    subjectCount,
+  };
+
 }

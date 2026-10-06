@@ -39,5 +39,53 @@
  *   //      text: "I love this song", wordCount: 4, sentiment: "love" }
  */
 export function parseWhatsAppMessage(message) {
-  // Your code here
+  // 1. Validation: Must be a string
+  if (typeof message !== "string") {
+    return null;
+  }
+
+  // 2. Locate delimiters
+  const commaIdx = message.indexOf(", ");
+  const dashIdx = message.indexOf(" - ");
+
+  // Validate date and time delimiters
+  if (commaIdx === -1 || dashIdx === -1 || dashIdx <= commaIdx) {
+    return null;
+  }
+
+  // Find colon after " - "
+  const colonIdx = message.indexOf(": ", dashIdx + 3);
+  if (colonIdx === -1) {
+    return null;
+  }
+
+  // 3. Extract parts
+  const date = message.slice(0, commaIdx).trim();
+  const time = message.slice(commaIdx + 2, dashIdx).trim();
+  const sender = message.slice(dashIdx + 3, colonIdx).trim();
+  const text = message.slice(colonIdx + 2).trim();
+const words = text.split(/\s+/).filter(w => w.length > 0);
+  const wordCount = words.length;
+
+// 5. Sentiment detection
+  const lowerText = text.toLowerCase();
+
+  let sentiment = "neutral";
+  const isFunny = lowerText.includes("😂") || lowerText.includes(":)") || lowerText.includes("haha");
+  const isLove = lowerText.includes("❤") || lowerText.includes("❤️") || lowerText.includes("love") || lowerText.includes("pyaar");
+
+  if (isFunny) {
+    sentiment = "funny";
+  } else if (isLove) {
+    sentiment = "love";
+  }
+
+  return {
+    date,
+    time,
+    sender,
+    text,
+    wordCount,
+    sentiment
+  };
 }

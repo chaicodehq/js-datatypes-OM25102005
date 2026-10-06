@@ -46,6 +46,91 @@
  *   //      categoryBreakdown: { income: 5000, food: 300 },
  *   //      frequentContact: "Swiggy", allAbove100: false, hasLargeTransaction: true }
  */
+/**
+ * 💸 UPI Transaction Log Analyzer
+ *
+ * @param {Array<{ id: string, type: string, amount: number, to: string, category: string, date: string }>} transactions
+ * @returns {{ totalCredit: number, totalDebit: number, netBalance: number, transactionCount: number, avgTransaction: number, highestTransaction: object, categoryBreakdown: object, frequentContact: string, allAbove100: boolean, hasLargeTransaction: boolean } | null}
+ */
 export function analyzeUPITransactions(transactions) {
-  // Your code here
+  // 1. Initial Validation
+  if (!Array.isArray(transactions) || transactions.length === 0) {
+    return null;
+  }
+
+  // 2. Filter valid transactions
+  const validTxns = transactions.filter(
+    t =>
+      t &&
+      typeof t.amount === "number" &&
+      Number.isFinite(t.amount) &&
+      t.amount > 0 &&
+      (t.type === "credit" || t.type === "debit")
+  );
+
+  if (validTxns.length === 0) {
+    return null;
+  }
+
+  // 3. Financial Totals & High-value tracking
+  let totalCredit = 0;
+  let totalDebit = 0;
+  let totalAmount = 0;
+  let highestTransaction = validTxns[0];
+
+  const categoryBreakdown = {};
+  const contactCounts = {};
+
+  for (const t of validTxns) {
+    // Totals
+    if (t.type === "credit") {
+      totalCredit += t.amount;
+    } else {
+      totalDebit += t.amount;
+    }
+    totalAmount += t.amount;
+
+    // Highest transaction check
+    if (t.amount > highestTransaction.amount) {
+      highestTransaction = t;
+    }
+
+    // Category breakdown
+    categoryBreakdown[t.category] = (categoryBreakdown[t.category] || 0) + t.amount;
+
+    // Contact frequency
+    contactCounts[t.to] = (contactCounts[t.to] || 0) + 1;
+  }
+
+  const transactionCount = validTxns.length;
+  const netBalance = totalCredit - totalDebit;
+  const avgTransaction = Math.round(totalAmount / transactionCount);
+
+  // 4. Determine frequent contact (first occurrence preserved on tie)
+  let frequentContact = validTxns[0].to;
+  let maxContactCount = 0;
+
+  for (const t of validTxns) {
+    if (contactCounts[t.to] > maxContactCount) {
+      maxContactCount = contactCounts[t.to];
+      frequentContact = t.to;
+    }
+  }
+
+  // 5. Conditions using every() and some()
+  const allAbove100 = validTxns.every(t => t.amount > 100);
+  const hasLargeTransaction = validTxns.some(t => t.amount >= 5000);
+
+  return {
+    totalCredit,
+    totalDebit,
+    netBalance,
+    transactionCount,
+    avgTransaction,
+    highestTransaction,
+    categoryBreakdown,
+    frequentContact,
+    allAbove100,
+    hasLargeTransaction,
+  };
 }
